@@ -60,10 +60,13 @@ func (s *Service) DeleteInstanceGroups() error {
 		name := path.Base(groupSelfLink)
 		op, err := s.instancegroups.Delete(s.scope.Project(), zone, name).Do()
 		if err != nil {
-			return errors.Wrapf(err, "failed to create backend service")
+			if !gcperrors.IsNotFound(err) {
+				return errors.Wrapf(err, "failed to delete instance group")
+			}
+			return nil
 		}
 		if err := wait.ForComputeOperation(s.scope.Compute, s.scope.Project(), op); err != nil {
-			return errors.Wrapf(err, "failed to create backend service")
+			return errors.Wrapf(err, "failed to wait for delete instance group operation")
 		}
 	}
 
