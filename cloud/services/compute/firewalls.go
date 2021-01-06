@@ -19,6 +19,7 @@ package compute
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	"google.golang.org/api/compute/v1"
@@ -71,6 +72,23 @@ func (s *Service) DeleteFirewalls() error {
 			return errors.Wrapf(err, "failed to delete forwarding rules")
 		}
 		delete(s.scope.Network().FirewallRules, name)
+	}
+	// Delete any other firewalls
+	fwList, err := s.firewalls.List(s.scope.Project()).Do()
+	if err != nil {
+		return errors.Wrapf(err, "failed to list firewalls for the cluster")
+	}
+	for _, fw := range fwList.Items {
+		if strings.HasSuffix(fw.Network, s.scope.Name()) {
+			s.scope.Info(fmt.Sprintf("deleting firewall: %s", fw.Name))
+			op, err := s.firewalls.Delete(s.scope.Project(), fw.Name).Do()
+			if err != nil {
+				return errors.Wrapf(err, "failed to delete firewall")
+			}
+			if err := wait.ForComputeOperation(s.scope.Compute, s.scope.Project(), op); err != nil {
+				return errors.Wrapf(err, "failed to wait for delete firewall")
+			}
+		}
 	}
 
 	return nil
