@@ -31,6 +31,10 @@ import (
 	"sigs.k8s.io/cluster-api-provider-gcp/cloud/wait"
 )
 
+const (
+	defaultDiskSizeGB = 30
+)
+
 // InstanceIfExists returns the existing instance or nothing if it doesn't exist.
 func (s *Service) InstanceIfExists(scope *scope.MachineScope) (*compute.Instance, error) {
 	log := s.scope.Logger.WithValues("instance-name", scope.Name())
@@ -86,7 +90,7 @@ func (s *Service) CreateInstance(scope *scope.MachineScope) (*compute.Instance, 
 				AutoDelete: true,
 				Boot:       true,
 				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskSizeGb:  30,
+					DiskSizeGb:  defaultDiskSizeGB,
 					DiskType:    diskTypeURL(scope.Zone(), infrav1.PdStandardDiskType),
 					SourceImage: sourceImage,
 				},
@@ -145,6 +149,32 @@ func (s *Service) CreateInstance(scope *scope.MachineScope) (*compute.Instance, 
 	}
 	if scope.GCPMachine.Spec.RootDeviceType != nil {
 		input.Disks[0].InitializeParams.DiskType = diskTypeURL(scope.Zone(), *scope.GCPMachine.Spec.RootDeviceType)
+	}
+	for _, d := range scope.GCPMachine.Spec.AdditionalDisks {
+		ad := &compute.AttachedDisk{
+			AutoDelete: true,
+			InitializeParams: &compute.AttachedDiskInitializeParams{
+				DiskSizeGb: defaultDiskSizeGB,
+				DiskType:   diskTypeURL(scope.Zone(), infrav1.PdStandardDiskType),
+			},
+		}
+		if d.DeviceType != nil {
+			ad.InitializeParams.DiskType = diskTypeURL(scope.Zone(), *d.DeviceType)
+		}
+		if *d.DeviceType == infrav1.LocalSsdDiskType {
+			ad.Type = "SCRATCH" // Default is PERSISTENT.
+			ad.InitializeParams.DiskSizeGb = 375
+
+			// For local SSDs set interface to NVME (instead of default SCSI) which is faster.
+			// Most OS images would work with both NVME and SCSI disks but some may work
+			// considerably faster with NVME.
+			// https://cloud.google.com/compute/docs/disks/local-ssd#choose_an_interface
+			ad.Interface = "NVME"
+		} else if d.Size > 0 {
+			ad.InitializeParams.DiskSizeGb = d.Size
+		}
+
+		input.Disks = append(input.Disks, ad)
 	}
 
 	if scope.GCPMachine.Spec.Subnet != nil {
