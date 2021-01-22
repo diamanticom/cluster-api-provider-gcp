@@ -215,7 +215,7 @@ func (s *Service) rootDiskImage(scope *scope.MachineScope) (string, error) {
 	}
 
 	image := fmt.Sprintf(
-		"projects/%s/global/images/family/capi-ubuntu-1804-k8s-v%d-%d",
+		"projects/%s/global/images/family/capi-centos-8-k8s-v%d-%d",
 		s.scope.Project(), version.Major, version.Minor)
 
 	return image, nil

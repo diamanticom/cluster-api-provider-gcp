@@ -86,7 +86,7 @@ STAGING_REGISTRY := gcr.io/k8s-staging-cluster-api-gcp
 PROD_REGISTRY := us.gcr.io/k8s-artifacts-prod/cluster-api-gcp
 IMAGE_NAME ?= cluster-api-gcp-controller
 export CONTROLLER_IMG ?= diamanti/capg
-export TAG ?= v0.3.0.1
+export TAG ?= v0.3.0.2
 export ARCH ?= amd64
 ALL_ARCH = amd64 arm arm64 ppc64le s390x
 
