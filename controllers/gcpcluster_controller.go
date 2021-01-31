@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	infrav1 "sigs.k8s.io/cluster-api-provider-gcp/api/v1alpha3"
@@ -173,6 +174,10 @@ func (r *GCPClusterReconciler) reconcile(clusterScope *scope.ClusterScope) (ctrl
 		return ctrl.Result{}, errors.Wrapf(err, "failed to reconcile firewalls for GCPCluster %s/%s", gcpCluster.Namespace, gcpCluster.Name)
 	}
 
+	if err := computeSvc.ReconcileBastion(); err != nil {
+		return reconcile.Result{}, errors.Wrapf(err, "failed to reconcile bastion node for GCPCluster %s/%s", gcpCluster.Namespace, gcpCluster.Name)
+	}
+
 	if err := computeSvc.ReconcileInstanceGroups(); err != nil {
 		return ctrl.Result{}, errors.Wrapf(err, "failed to reconcile instance groups for GCPCluster %s/%s", gcpCluster.Namespace, gcpCluster.Name)
 	}
@@ -240,6 +245,11 @@ func (r *GCPClusterReconciler) reconcileDelete(clusterScope *scope.ClusterScope)
 	if err := computeSvc.DeleteInstanceGroups(); err != nil {
 		return ctrl.Result{}, errors.Wrapf(err, "error deleting instance groups for GCPCluster %s/%s", gcpCluster.Namespace, gcpCluster.Name)
 	}
+
+	if err := computeSvc.DeleteBastion(); err != nil {
+		return reconcile.Result{}, errors.Wrapf(err, "error deleting bastion node for GCPCluster %s/%s", gcpCluster.Namespace, gcpCluster.Name)
+	}
+
 
 	if err := computeSvc.DeleteFirewalls(); err != nil {
 		return ctrl.Result{}, errors.Wrapf(err, "error deleting firewall rules for GCPCluster %s/%s", gcpCluster.Namespace, gcpCluster.Name)

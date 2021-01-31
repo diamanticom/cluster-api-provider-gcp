@@ -130,10 +130,29 @@ func (s *Service) getFirewallSpecs() []*compute.Firewall {
 			SourceTags: []string{
 				fmt.Sprintf("%s-control-plane", s.scope.Name()),
 				fmt.Sprintf("%s-node", s.scope.Name()),
+				fmt.Sprintf("%s-bastion", s.scope.Name()),
 			},
 			TargetTags: []string{
 				fmt.Sprintf("%s-control-plane", s.scope.Name()),
 				fmt.Sprintf("%s-node", s.scope.Name()),
+				fmt.Sprintf("%s-bastion", s.scope.Name()),
+			},
+		},
+		{
+			Name:    fmt.Sprintf("allow-%s-bastion-ssh", s.scope.Name()),
+			Network: s.scope.NetworkSelfLink(),
+			Allowed: []*compute.FirewallAllowed{
+				{
+					IPProtocol: "TCP",
+					Ports:      []string{"22"},
+				},
+			},
+			SourceRanges: []string{
+				"0.0.0.0/0",
+			},
+			Direction: "INGRESS",
+			TargetTags: []string{
+				fmt.Sprintf("%s-bastion", s.scope.Name()),
 			},
 		},
 	}

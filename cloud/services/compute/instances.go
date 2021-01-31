@@ -70,6 +70,9 @@ func (s *Service) CreateInstance(scope *scope.MachineScope) (*compute.Instance, 
 		return nil, err
 	}
 
+	sshkey := s.scope.GetSshPublicKey()
+	sshkey = fmt.Sprintf("centos:%s", sshkey)
+
 	input := &compute.Instance{
 		Name:         scope.Name(),
 		Zone:         scope.Zone(),
@@ -101,6 +104,10 @@ func (s *Service) CreateInstance(scope *scope.MachineScope) (*compute.Instance, 
 				{
 					Key:   "user-data",
 					Value: pointer.StringPtr(bootstrapData),
+				},
+				{
+					Key:   "ssh-keys",
+					Value: &sshkey,
 				},
 			},
 		},

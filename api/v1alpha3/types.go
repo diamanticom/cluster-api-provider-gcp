@@ -78,6 +78,11 @@ type Network struct {
 	// created for the API Server.
 	// +optional
 	APIServerForwardingRule *string `json:"apiServerForwardingRule,omitempty"`
+
+	// Subnet is the full reference to the subnet created within the network
+	// when custom VPC network is used
+	// +optional
+	Subnet *string `json:"subnet,omitempty"`
 }
 
 // NetworkSpec encapsulates all things related to a GCP network.
@@ -227,4 +232,11 @@ type ServiceAccount struct {
 	// Scopes: The list of scopes to be made available for this service
 	// account.
 	Scopes []string `json:"scopes,omitempty"`
+}
+
+type Bastion struct {
+	// SelfLink is the link to the Bastion node.
+	SelfLink *string `json:"selfLink,omitempty"`
+
+	GCPMachineStatus `json:",inline"`
 }

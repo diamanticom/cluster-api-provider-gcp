@@ -28,6 +28,8 @@ import (
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // ClusterScopeParams defines the input parameters used to create a new Scope.
@@ -107,6 +109,11 @@ func (s *ClusterScope) NetworkSelfLink() string {
 	return *s.GCPCluster.Status.Network.SelfLink
 }
 
+// SubnetSelfLink returns the full self link to the subnet.
+func (s *ClusterScope) SubnetSelfLink() string {
+	return *s.GCPCluster.Status.Network.Subnet
+}
+
 // Network returns the cluster network object.
 func (s *ClusterScope) Network() *infrav1.Network {
 	return &s.GCPCluster.Status.Network
@@ -172,4 +179,15 @@ func (s *ClusterScope) PatchObject() error {
 // Close closes the current scope persisting the cluster configuration and status.
 func (s *ClusterScope) Close() error {
 	return s.PatchObject()
+}
+
+// Retrieve the ssh publickey in the namespace
+func (s *ClusterScope) GetSshPublicKey() string {
+	obj := &corev1.Secret{}
+	err := s.client.Get(context.TODO(), types.NamespacedName{Name: "sshkey", Namespace: s.Namespace()}, obj)
+	if err != nil {
+		return ""
+	}
+	sshkey, _ := obj.Data["ssh-publickey"]
+	return string(sshkey)
 }
