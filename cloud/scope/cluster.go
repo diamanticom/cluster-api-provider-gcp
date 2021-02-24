@@ -23,13 +23,13 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
 	"google.golang.org/api/compute/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/klogr"
 	infrav1 "sigs.k8s.io/cluster-api-provider-gcp/api/v1alpha3"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1alpha3"
 	"sigs.k8s.io/cluster-api/util/patch"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 // ClusterScopeParams defines the input parameters used to create a new Scope.
@@ -106,12 +106,20 @@ func (s *ClusterScope) NetworkName() string {
 
 // NetworkSelfLink returns the full self link to the network.
 func (s *ClusterScope) NetworkSelfLink() string {
-	return *s.GCPCluster.Status.Network.SelfLink
+	if s.GCPCluster.Status.Network.SelfLink != nil {
+		return *s.GCPCluster.Status.Network.SelfLink
+	}
+
+	return "default"
 }
 
 // SubnetSelfLink returns the full self link to the subnet.
 func (s *ClusterScope) SubnetSelfLink() string {
-	return *s.GCPCluster.Status.Network.Subnet
+	if s.GCPCluster.Status.Network.Subnet != nil {
+		return *s.GCPCluster.Status.Network.Subnet
+	}
+
+	return "default"
 }
 
 // Network returns the cluster network object.

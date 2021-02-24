@@ -250,7 +250,6 @@ func (r *GCPClusterReconciler) reconcileDelete(clusterScope *scope.ClusterScope)
 		return reconcile.Result{}, errors.Wrapf(err, "error deleting bastion node for GCPCluster %s/%s", gcpCluster.Namespace, gcpCluster.Name)
 	}
 
-
 	if err := computeSvc.DeleteFirewalls(); err != nil {
 		return ctrl.Result{}, errors.Wrapf(err, "error deleting firewall rules for GCPCluster %s/%s", gcpCluster.Namespace, gcpCluster.Name)
 	}

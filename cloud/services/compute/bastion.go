@@ -40,6 +40,16 @@ func (s *Service) ReconcileBastion() error {
 		return nil
 	}
 
+	// Return early if the networklink is not set yet
+	if "default" == s.scope.NetworkSelfLink() {
+		return nil
+	}
+
+	// Return early if the subnetlink is not set yet
+	if "default" == s.scope.SubnetSelfLink() {
+		return nil
+	}
+
 	s.scope.V(2).Info("Reconciling bastion host")
 
 	// Describe bastion instance, if any.
