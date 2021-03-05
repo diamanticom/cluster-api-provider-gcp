@@ -130,7 +130,8 @@ func (s *Service) DeleteNetwork() error {
 	}
 
 	for _, route := range routeList.Items {
-		if strings.HasSuffix(route.Network, network.Name) {
+		netName := fmt.Sprintf("/%s", network.Name)
+		if strings.HasSuffix(route.Network, netName) {
 			s.scope.Info("deleting route ", "route:", route.Name)
 			op, err := s.routes.Delete(s.scope.Project(), route.Name).Do()
 			if err != nil {

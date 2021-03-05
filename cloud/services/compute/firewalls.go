@@ -79,7 +79,8 @@ func (s *Service) DeleteFirewalls() error {
 		return errors.Wrapf(err, "failed to list firewalls for the cluster")
 	}
 	for _, fw := range fwList.Items {
-		if strings.HasSuffix(fw.Network, s.scope.Name()) {
+		netName := fmt.Sprintf("/%s", s.scope.Name())
+		if strings.HasSuffix(fw.Network, netName) {
 			s.scope.Info(fmt.Sprintf("deleting firewall: %s", fw.Name))
 			op, err := s.firewalls.Delete(s.scope.Project(), fw.Name).Do()
 			if err != nil {
